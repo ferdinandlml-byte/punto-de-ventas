@@ -1,0 +1,24 @@
+244 INFO: PyInstaller: 6.18.0, contrib hooks: 2026.0
+244 INFO: Python: 3.13.9
+286 INFO: Platform: Windows-11-10.0.26200-SP0
+286 INFO: Python environment: C:\Users\ferlo\OneDrive\Documents\GitHub\punto-de-ventas\.venv
+290 INFO: Module search paths (PYTHONPATH):
+['C:\\Users\\ferlo\\OneDrive\\Documents\\GitHub\\punto-de-ventas',
+ 'C:\\Program Files\\Python313\\python313.zip',
+ 'C:\\Program Files\\Python313\\DLLs',
+ 'C:\\Program Files\\Python313\\Lib',
+ 'C:\\Program Files\\Python313',
+ 'C:\\Users\\ferlo\\OneDrive\\Documents\\GitHub\\punto-de-ventas\\.venv',
+ 'C:\\Users\\ferlo\\OneDrive\\Documents\\GitHub\\punto-de-ventas\\.venv\\Lib\\site-packages',
+ 'C:\\Users\\ferlo\\OneDrive\\Documents\\GitHub\\punto-de-ventas']
+771 INFO: Appending 'datas' from .spec
+772 INFO: checking Analysis
+873 INFO: checking PYZ
+942 INFO: checking PKG
+980 INFO: Bootloader C:\Users\ferlo\OneDrive\Documents\GitHub\punto-de-ventas\.venv\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+980 INFO: checking EXE
+1026 INFO: checking COLLECT
+1026 INFO: Building COLLECT because COLLECT-00.toc is non existent
+1027 INFO: Building COLLECT COLLECT-00.toc
+3140 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+3172 INFO: Build complete! The results are available in: C:\Users\ferlo\OneDrive\Documents\GitHub\punto-de-ventas\dist

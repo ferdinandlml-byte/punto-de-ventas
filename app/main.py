@@ -10,60 +10,105 @@ from reportlab.pdfgen import canvas
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .db import (
-    init_db,
-    seed_sample_data,
-    get_product_by_barcode,
-    add_product,
-    record_sale,
-    get_daily_sales_summary,
-    ensure_default_user,
-    verify_user,
-    list_products,
-    get_product_by_id,
-    update_product,
-    delete_product,
-    list_customers,
-    add_customer,
-    update_customer,
-    delete_customer,
-    list_suppliers,
-    add_supplier,
-    update_supplier,
-    delete_supplier,
-    list_expenses,
-    add_expense,
-    delete_expense,
-    list_users,
-    add_user,
-    update_user,
-    delete_user,
-    get_setting,
-    set_setting,
-    record_purchase,
-    backup_database,
-    restore_database,
-    get_top_products,
-    list_sales_for_date,
-    list_categories,
-    add_category,
-    delete_category,
-    list_branches,
-    add_branch,
-    delete_branch,
-    clear_transactions,
-)
+if not __package__:
+    project_root = Path(__file__).resolve().parent.parent
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+    __package__ = "app"
+
+try:
+    from .db import (
+        init_db,
+        seed_sample_data,
+        get_product_by_barcode,
+        add_product,
+        record_sale,
+        get_daily_sales_summary,
+        ensure_default_user,
+        verify_user,
+        list_products,
+        get_product_by_id,
+        update_product,
+        delete_product,
+        list_customers,
+        add_customer,
+        update_customer,
+        delete_customer,
+        list_suppliers,
+        add_supplier,
+        update_supplier,
+        delete_supplier,
+        list_expenses,
+        add_expense,
+        delete_expense,
+        list_users,
+        add_user,
+        update_user,
+        delete_user,
+        get_setting,
+        set_setting,
+        record_purchase,
+        backup_database,
+        restore_database,
+        get_top_products,
+        list_sales_for_date,
+        list_categories,
+        add_category,
+        delete_category,
+        list_branches,
+        add_branch,
+        delete_branch,
+        clear_transactions,
+    )
+except ImportError:
+    from app.db import (
+        init_db,
+        seed_sample_data,
+        get_product_by_barcode,
+        add_product,
+        record_sale,
+        get_daily_sales_summary,
+        ensure_default_user,
+        verify_user,
+        list_products,
+        get_product_by_id,
+        update_product,
+        delete_product,
+        list_customers,
+        add_customer,
+        update_customer,
+        delete_customer,
+        list_suppliers,
+        add_supplier,
+        update_supplier,
+        delete_supplier,
+        list_expenses,
+        add_expense,
+        delete_expense,
+        list_users,
+        add_user,
+        update_user,
+        delete_user,
+        get_setting,
+        set_setting,
+        record_purchase,
+        backup_database,
+        restore_database,
+        get_top_products,
+        list_sales_for_date,
+        list_categories,
+        add_category,
+        delete_category,
+        list_branches,
+        add_branch,
+        delete_branch,
+        clear_transactions,
+    )
 
 
 def get_currency_symbol() -> str:
     return get_setting("currency_symbol", "$")
-
-
-def get_tax_rate() -> float:
-    try:
-        return float(get_setting("tax_rate", "0.16"))
-    except ValueError:
-        return 0.16
 
 
 def format_money(value: float) -> str:
@@ -925,6 +970,26 @@ class PurchasesWidget(QtWidgets.QWidget):
         self.barcode_input = QtWidgets.QLineEdit()
         self.barcode_input.setPlaceholderText("Escanea el código de barras")
         self.barcode_input.returnPressed.connect(self.add_barcode)
+        # Fuerza texto negro y fondo blanco para que siempre sea visible
+        self.barcode_input.setStyleSheet(
+            "color: #000000; background: #ffffff; selection-color: #000000; "
+            "selection-background-color: #ffd54f; border: 1px solid #c0c4cc;"
+        )
+        barcode_palette = self.barcode_input.palette()
+        barcode_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+        barcode_palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+        barcode_palette.setColor(QtGui.QPalette.PlaceholderText, QtCore.Qt.darkGray)
+        self.barcode_input.setPalette(barcode_palette)
+        # Fuerza texto negro y fondo claro; también corrige la paleta para evitar heredar colores blancos
+        self.barcode_input.setStyleSheet(
+            "color: #000000; background: #ffffff; selection-color: #000000; "
+            "selection-background-color: #ffd54f; border: 1px solid #c0c4cc;"
+        )
+        barcode_palette = self.barcode_input.palette()
+        barcode_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+        barcode_palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+        barcode_palette.setColor(QtGui.QPalette.PlaceholderText, QtCore.Qt.darkGray)
+        self.barcode_input.setPalette(barcode_palette)
 
         self.qty_input = QtWidgets.QDoubleSpinBox()
         self.qty_input.setDecimals(2)
@@ -1286,35 +1351,6 @@ class CurrencyDialog(QtWidgets.QDialog):
         set_setting("currency_symbol", self.symbol_input.text().strip() or "$")
 
 
-class TaxDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
-        self.setWindowTitle("IVA")
-        self.setMinimumWidth(300)
-
-        self.tax_input = QtWidgets.QDoubleSpinBox()
-        self.tax_input.setDecimals(2)
-        self.tax_input.setMaximum(1)
-        self.tax_input.setSingleStep(0.01)
-        self.tax_input.setValue(get_tax_rate())
-
-        form = QtWidgets.QFormLayout()
-        form.addRow("IVA (0.16 = 16%)", self.tax_input)
-
-        buttons = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel
-        )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addLayout(form)
-        layout.addWidget(buttons)
-
-    def save(self) -> None:
-        set_setting("tax_rate", f"{self.tax_input.value():.2f}")
-
-
 class TicketDialog(QtWidgets.QDialog):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -1347,7 +1383,8 @@ class SalesWidget(QtWidgets.QWidget):
         super().__init__(parent)
         self.cart: Dict[str, Dict[str, Any]] = {}
         self.last_ticket_path: Path | None = None
-        self.tax_rate = get_tax_rate()
+        # IVA se desactiva; forzamos 0
+        self.tax_rate = 0.0
 
         self.barcode_input = QtWidgets.QLineEdit()
         self.barcode_input.setPlaceholderText("Escanea el código de barras")
@@ -1368,8 +1405,17 @@ class SalesWidget(QtWidgets.QWidget):
         self.discount_input.setPrefix(f"{get_currency_symbol()} ")
         self.discount_input.valueChanged.connect(self.update_table)
 
+        self.payment_input = QtWidgets.QDoubleSpinBox()
+        self.payment_input.setDecimals(2)
+        self.payment_input.setMaximum(999999)
+        self.payment_input.setPrefix(f"{get_currency_symbol()} ")
+        self.payment_input.valueChanged.connect(self.update_table)
+
         self.clear_button = QtWidgets.QPushButton("Vaciar carrito")
         self.clear_button.clicked.connect(self.clear_cart)
+
+        self.remove_button = QtWidgets.QPushButton("Quitar seleccionado")
+        self.remove_button.clicked.connect(self.remove_selected_item)
 
         self.checkout_button = QtWidgets.QPushButton("Finalizar venta")
         self.checkout_button.clicked.connect(self.complete_sale)
@@ -1395,8 +1441,8 @@ class SalesWidget(QtWidgets.QWidget):
 
         self.subtotal_label = QtWidgets.QLabel(format_money(0))
         self.discount_label = QtWidgets.QLabel(format_money(0))
-        self.tax_label = QtWidgets.QLabel(format_money(0))
         self.total_label = QtWidgets.QLabel(format_money(0))
+        self.change_label = QtWidgets.QLabel(format_money(0))
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)
@@ -1416,16 +1462,19 @@ class SalesWidget(QtWidgets.QWidget):
         totals_layout.addWidget(self.subtotal_label, 0, 1)
         totals_layout.addWidget(QtWidgets.QLabel("Descuento:"), 1, 0)
         totals_layout.addWidget(self.discount_label, 1, 1)
-        totals_layout.addWidget(QtWidgets.QLabel(f"IVA ({self.tax_rate * 100:.0f}%):"), 2, 0)
-        totals_layout.addWidget(self.tax_label, 2, 1)
-        totals_layout.addWidget(QtWidgets.QLabel("Total:"), 3, 0)
-        totals_layout.addWidget(self.total_label, 3, 1)
+        totals_layout.addWidget(QtWidgets.QLabel("Total:"), 2, 0)
+        totals_layout.addWidget(self.total_label, 2, 1)
+        totals_layout.addWidget(QtWidgets.QLabel("Pago con:"), 3, 0)
+        totals_layout.addWidget(self.payment_input, 3, 1)
+        totals_layout.addWidget(QtWidgets.QLabel("Cambio:"), 4, 0)
+        totals_layout.addWidget(self.change_label, 4, 1)
 
         actions_layout = QtWidgets.QHBoxLayout()
         actions_layout.addWidget(self.new_product_button)
         actions_layout.addWidget(self.daily_report_button)
         actions_layout.addWidget(self.print_button)
         actions_layout.addStretch(1)
+        actions_layout.addWidget(self.remove_button)
         actions_layout.addWidget(self.clear_button)
         actions_layout.addWidget(self.checkout_button)
 
@@ -1486,17 +1535,34 @@ class SalesWidget(QtWidgets.QWidget):
 
         self.subtotal_label.setText(format_money(subtotal))
         discount = float(self.discount_input.value())
-        taxable = max(0.0, subtotal - discount)
-        tax_amount = taxable * self.tax_rate
-        total = taxable + tax_amount
+        total = max(0.0, subtotal - discount)
+        payment = float(self.payment_input.value())
+        change = max(0.0, payment - total)
         self.discount_label.setText(format_money(discount))
-        self.tax_label.setText(format_money(tax_amount))
         self.total_label.setText(format_money(total))
+        self.change_label.setText(format_money(change))
 
     def clear_cart(self) -> None:
         self.cart.clear()
         self.update_table()
         self._status_message("Carrito limpio", 2000)
+
+    def remove_selected_item(self) -> None:
+        row = self.table.currentRow()
+        if row < 0:
+            self._status_message("Selecciona un producto de la lista", 2500)
+            return
+        barcode_item = self.table.item(row, 0)
+        if not barcode_item:
+            self._status_message("No se pudo obtener el código", 2500)
+            return
+        barcode = barcode_item.text()
+        if barcode in self.cart:
+            del self.cart[barcode]
+            self.update_table()
+            self._status_message("Producto quitado del carrito", 2500)
+        else:
+            self._status_message("No se encontró el producto en el carrito", 2500)
 
     def complete_sale(self) -> None:
         if not self.cart:
@@ -1505,9 +1571,21 @@ class SalesWidget(QtWidgets.QWidget):
 
         try:
             discount = float(self.discount_input.value())
+            subtotal = sum(item["line_total"] for item in self.cart.values())
+            total_due = max(0.0, subtotal - discount)
+            payment = float(self.payment_input.value())
+            if payment < total_due:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Pago insuficiente",
+                    f"Total: {format_money(total_due)}\nPago con: {format_money(payment)}",
+                )
+                return
+
             sale_id, total = record_sale(
-                self.cart.values(), discount=discount, tax_rate=self.tax_rate
+                self.cart.values(), discount=discount, tax_rate=0.0
             )
+            change = max(0.0, payment - total)
         except Exception as exc:  # noqa: BLE001
             QtWidgets.QMessageBox.critical(self, "Error", str(exc))
             return
@@ -1516,12 +1594,17 @@ class SalesWidget(QtWidgets.QWidget):
             sale_id,
             list(self.cart.values()),
             discount,
+            payment,
+            change,
         )
         self.print_button.setEnabled(self.last_ticket_path is not None)
         self.clear_cart()
         self.discount_input.setValue(0)
+        self.payment_input.setValue(0)
+        self.change_label.setText(format_money(0))
         self._status_message(
-            f"Venta #{sale_id} registrada. Total {format_money(total)}", 4000
+            f"Venta #{sale_id} registrada. Total {format_money(total)} | Cambio {format_money(change)}",
+            4000,
         )
 
     def open_add_product(self) -> None:
@@ -1562,6 +1645,8 @@ class SalesWidget(QtWidgets.QWidget):
         sale_id: int,
         items: list[Dict[str, Any]],
         discount: float,
+        payment: float,
+        change: float,
     ) -> Path | None:
         tickets_dir = Path(__file__).resolve().parent.parent / "data" / "tickets"
         tickets_dir.mkdir(parents=True, exist_ok=True)
@@ -1569,8 +1654,7 @@ class SalesWidget(QtWidgets.QWidget):
 
         subtotal = sum(item["line_total"] for item in items)
         taxable = max(0.0, subtotal - discount)
-        tax_amount = taxable * self.tax_rate
-        total = taxable + tax_amount
+        total = taxable
 
         width = 80 * mm
         height = 200 * mm
@@ -1600,12 +1684,16 @@ class SalesWidget(QtWidgets.QWidget):
         c.drawString(8 * mm, y, "Descuento:")
         c.drawRightString(width - 6 * mm, y, format_money(discount))
         y -= 4 * mm
-        c.drawString(8 * mm, y, f"IVA {self.tax_rate * 100:.0f}%:")
-        c.drawRightString(width - 6 * mm, y, format_money(tax_amount))
-        y -= 5 * mm
         c.setFont("Helvetica-Bold", 9)
         c.drawString(8 * mm, y, "Total:")
         c.drawRightString(width - 6 * mm, y, format_money(total))
+        y -= 5 * mm
+        c.setFont("Helvetica", 8)
+        c.drawString(8 * mm, y, "Pago con:")
+        c.drawRightString(width - 6 * mm, y, format_money(payment))
+        y -= 4 * mm
+        c.drawString(8 * mm, y, "Cambio:")
+        c.drawRightString(width - 6 * mm, y, format_money(change))
 
         footer = get_setting("ticket_footer", "Gracias por su compra")
         y -= 8 * mm
@@ -1736,7 +1824,6 @@ class DashboardWindow(QtWidgets.QMainWindow):
             "Restaurar DB",
             "Eliminar registros DB",
             "Moneda",
-            "IVA",
             "Editar Factura",
             "Descargar Plantilla",
             "Importar Productos",
@@ -1803,12 +1890,6 @@ class DashboardWindow(QtWidgets.QMainWindow):
             dialog = CurrencyDialog(self)
             if dialog.exec() == QtWidgets.QDialog.Accepted:
                 dialog.save()
-        elif action == "IVA":
-            dialog = TaxDialog(self)
-            if dialog.exec() == QtWidgets.QDialog.Accepted:
-                dialog.save()
-                self.sales_widget.tax_rate = get_tax_rate()
-                self.sales_widget.update_table()
         elif action == "Editar Factura":
             dialog = TicketDialog(self)
             if dialog.exec() == QtWidgets.QDialog.Accepted:
@@ -1940,8 +2021,6 @@ def main() -> None:
     ensure_default_user()
     if not get_setting("currency_symbol", ""):
         set_setting("currency_symbol", "$")
-    if not get_setting("tax_rate", ""):
-        set_setting("tax_rate", "0.16")
     if not get_setting("ticket_footer", ""):
         set_setting("ticket_footer", "Gracias por su compra")
 
